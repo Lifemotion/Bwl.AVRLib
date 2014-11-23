@@ -9,7 +9,7 @@ unsigned char cuDeviceModel;
 unsigned char cuDeviceVersion;
 
 typedef unsigned char byte;
-#define CATUART_MAX_PACKET_LENGTH 38
+#define CATUART_MAX_PACKET_LENGTH 128
 
 struct
 {

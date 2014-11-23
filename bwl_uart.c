@@ -19,22 +19,15 @@ void uart_init_withdivider(unsigned int ubrr)
 	UCSR0C = (1<<USBS0)|(3<<UCSZ00);
 }
 
+void uart_disable()
+{
+	UCSR0B = (0<<RXEN0)|(0<<TXEN0);	
+}
+
 void uart_init_withbaud(double clock_khz, double portspeed_baud)
 {
-	if (clock_khz==8000.0)
-	{
-		if (portspeed_baud==1200){uart_init_withdivider(416);}
-		if (portspeed_baud==2400){uart_init_withdivider(207);}
-		if (portspeed_baud==4800){uart_init_withdivider(103);}
-		if (portspeed_baud==9600){uart_init_withdivider(51);}
-		if (portspeed_baud==19200){uart_init_withdivider(25);}
-		if (portspeed_baud==38400){uart_init_withdivider(12);}
-		if (portspeed_baud==115200){uart_init_withdivider(3);}
-	}else
-	{
 		double divider=round(clock_khz*1000.0/(double)portspeed_baud/16.0-1.0);
 		uart_init_withdivider(divider);
-	}
 }
 
 void uart_send( unsigned char byte )
