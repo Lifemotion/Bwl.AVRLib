@@ -10,9 +10,9 @@
 #define BWL_ADC_H_
 
 
-void adcInit (unsigned char mux, unsigned char adjust, unsigned char refs, unsigned char prescaler);
-void adcOff (void);
-unsigned int adcReadOnce (void);
+void adc_init (unsigned char mux, unsigned char adjust, unsigned char refs, unsigned char prescaler);
+void adc_off (void);
+unsigned int adc_read_once (void);
 
 
 #define ADC_MUX_ADC0 0
@@ -23,7 +23,7 @@ unsigned int adcReadOnce (void);
 #define ADC_MUX_ADC5 5
 #define ADC_MUX_ADC6 6
 #define ADC_MUX_ADC7 7
-#define ADC_MUX_ADC8 8
+#define ADC_MUX_ADC_TEMP 8
 #define ADC_MUX_1_1V 14
 #define ADC_MUX_0V 15
 

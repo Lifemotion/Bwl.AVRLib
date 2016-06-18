@@ -1,23 +1,19 @@
 #ifndef GAP_LIB_H_
-#define GAP_LIB_H_
+#define F_CPU 8000000
 
+#define GAP_LIB_H_
+#define bit_set(var, bit)   ((var) |= (uint8_t)(1<<bit))
+#define bit_clr(var, bit)   ((var) &= (uint8_t)~(1<<bit))
+#define bit_toggle(var, bit)   ((var) ^= (uint8_t)(1<<bit))
+#define bit_read(var, bit)   ((var) & (uint8_t)(1<<bit))
 #include <avr/io.h>
 
-void gap_delay(unsigned int delay);
+void gap_delay(double delay);
 void gap_led(char r, char g, char b);
-void gap_button_enable();
+void gap_button_enable1();
 void gap_button2_enable();
 void gap_opt_in1_enable();
 void gap_opt_in2_enable();
-unsigned char gap_pinb(unsigned char pin);
-unsigned char gap_pinc(unsigned char pin);
-unsigned char gap_pind(unsigned char pin);
-void gap_ddrb(unsigned char pin, unsigned char val);
-void gap_ddrc(unsigned char pin, unsigned char val);
-void gap_ddrd(unsigned char pin, unsigned char val);
-void gap_portb(unsigned char pin, unsigned char val);
-void gap_portc(unsigned char pin, unsigned char val);
-void gap_portd(unsigned char pin, unsigned char val);
 unsigned int gap_button_portb(unsigned char pin);
 unsigned int gap_button1();
 unsigned int gap_button2();

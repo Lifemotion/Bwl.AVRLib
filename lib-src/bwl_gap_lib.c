@@ -1,20 +1,12 @@
-/*
- * gap_lib.c
- *
- * Created: 03.11.2013 23:56:21
- *  Author: Igor
- */ 
 #include <avr/io.h>
+#include <avr/wdt.h>
+#include "bwl_gap_lib.h"
+#include <util/delay.h>
 
-
-
-void gap_delay(unsigned int delay)
+void gap_delay(double delay)
 {
-	volatile unsigned long v;
-	for (v=0; v<delay;v++)
-	{
-		v=v;
-	}
+
+		//_delay_ms(delay);
 }
 
 void gap_led(char r, char g, char b)
@@ -22,14 +14,14 @@ void gap_led(char r, char g, char b)
 	DDRB|=0b00000111;
 	unsigned char pb=PORTB;
 	pb=pb&0b11111000;
-	if (!r){pb|=4;}
-	if (!g){pb|=1;}
-	if (!b){pb|=2;}
+	if (r){pb|=4;}
+	if (g){pb|=1;}
+	if (b){pb|=2;}
 	PORTB=pb;
 	return;
 }
 
-void gap_button_enable()
+void gap_button_enable1()
 {
 	DDRB&=0b11110111;
 	PORTB|=0b00001000;
@@ -57,56 +49,16 @@ void gap_opt_in2_enable()
 	return;
 }
 
-unsigned char gap_pinb(unsigned char pin)
-{
-	return ((PINB&(1<<pin))==0);
-}
-unsigned char gap_pinc(unsigned char pin)
-{
-	return ((PINC&(1<<pin))==0);
-}
-unsigned char gap_pind(unsigned char pin)
-{
-	return ((PIND&(1<<pin))==0);
-}
-
-void gap_ddrc(unsigned char pin, unsigned char val)
-{
-	if (val){DDRC|=1<<pin;}else{DDRC&=(~(1<<pin));}
-}
-
-void gap_portc(unsigned char pin, unsigned char val)
-{
-	if (val){PORTC|=1<<pin;	}else{PORTC&=(~(1<<pin));}
-}
-void gap_ddrd(unsigned char pin, unsigned char val)
-{
-	if (val){DDRD|=1<<pin;}else{DDRD&=(~(1<<pin));}
-}
-
-void gap_portd(unsigned char pin, unsigned char val)
-{
-	if (val){PORTD|=1<<pin;	}else{PORTD&=(~(1<<pin));}
-}
-void gap_ddrb(unsigned char pin, unsigned char val)
-{
-	if (val){DDRB|=1<<pin;}else{DDRB&=(~(1<<pin));}
-}
-
-void gap_portb(unsigned char pin, unsigned char val)
-{
-	if (val){PORTB|=1<<pin;	}else{PORTB&=(~(1<<pin));}
-}
 unsigned int gap_button_portb(unsigned char pin)
 {
-	if (gap_pinb(pin))
+	if (!bit_read(PINB,pin))
 	{
 		volatile int wait=0;
 		do
 		{
 			wait++;
-			gap_delay(1000);
-		} while (gap_pinb(pin));
+			gap_delay(100);
+		} while (!bit_read(PINB,pin));
 		return wait;
 	}
 	return 0;
@@ -114,7 +66,7 @@ unsigned int gap_button_portb(unsigned char pin)
 
 unsigned int gap_button1()
 {
-	gap_button_enable();
+	gap_button_enable1();
 	return gap_button_portb(3);
 };
 
@@ -127,76 +79,72 @@ unsigned int gap_button2()
 unsigned int gap_opt_in1()
 {
 	gap_opt_in1_enable();
-	return gap_pinc(0);
+	return (bit_read(PINC,0)==0);
+};
+
+unsigned int gap_opt_in2()
+{
+	gap_opt_in2_enable();
+	return (bit_read(PINC,1)==0);
 };
 
 void gap_buzzer_play(unsigned int freq, unsigned int time)
 {
-	gap_ddrc(5,1);
-	unsigned int pause=30000/freq;
+	bit_set(DDRC,5);
+	double pause=1000.0/freq;
 	unsigned int cc=freq/10;
 	for (unsigned int i=0; i<time; i++)
 	{
 		for (unsigned int m=0; m<cc; m++)
 		{
-			gap_portc(5,1);
+			bit_set(PORTC,5);
 			gap_delay(pause);
-			gap_portc(5,0);
+			bit_clr(PORTC,5);
 		}
 	}
-	gap_ddrc(5,0);
+	bit_clr(DDRC,5);
 }
 
 void gap_relay1(unsigned char state)
 {
-	gap_ddrd(7,state);
-	gap_portd(7,state);
+	bit_set(DDRD,7);
+	if (state){bit_set(PORTD,7);}else{bit_clr(PORTD,7);}
 }
+
 void gap_relay2(unsigned char state)
 {
-	gap_ddrd(6,state);
-	gap_portd(6,state);
-}
-
-
-void gap_uart_485_rx()
-{
-	gap_portb(5,0);
-	gap_ddrb(5,1);
+	bit_set(DDRD,6);
+	if (state){bit_set(PORTD,6);}else{bit_clr(PORTD,6);}
 }
 
 void gap_uart_485_tx()
-{
-	gap_portb(5,1);
-	gap_ddrb(5,1);
-}
+{bit_set(DDRB,5); bit_set(PORTB,5);	};
 
-void catuart_tx_off()
-{
-	gap_uart_485_rx();
-}
+void gap_uart_485_rx()
+{bit_set(DDRB,5);bit_clr(PORTB,5);	};
 
-void catuart_tx_on()
-{
-	gap_uart_485_tx();
-}
+void sserial_send_start()
+{bit_set(DDRB,5); bit_set(PORTB,5);	};
+
+void sserial_send_end()
+{bit_set(DDRB,5);bit_clr(PORTB,5);	};
 
 void gap_power_out(unsigned char out, unsigned char state)
 {
 	if (out==1)
 	{
-		if (state>0){gap_ddrd(2,1);gap_portd(2,1);} else {gap_ddrd(2,1);gap_portd(2,0);}
+		if (state>0){bit_set(DDRD,2);bit_set(PORTD,2);} else {bit_set(DDRD,2);bit_clr(PORTD,2);}
 	}
 	if (out==2)
 	{
-		if (state>0){gap_ddrd(3,1);gap_portd(3,1);} else {gap_ddrd(3,1);gap_portd(3,0);}
+		if (state>0){bit_set(DDRD,3);bit_set(PORTD,4);} else {bit_set(DDRD,3);bit_clr(PORTD,3);}
 	}
 	if (out==3)
 	{
-		if (state>0){gap_ddrd(4,1);gap_portd(4,1);} else {gap_ddrd(4,1);gap_portd(4,0);}
+			if (state>0){bit_set(DDRD,4);bit_set(PORTD,4);} else {bit_set(DDRD,4);bit_clr(PORTD,4);}
 	}
 	if (out==4)
 	{
-		if (state>0){gap_ddrd(5,1);gap_portd(5,1);} else {gap_ddrd(5,1);gap_portd(5,0);}
+		if (state>0){bit_set(DDRD,5);bit_set(PORTD,5);} else {bit_set(DDRD,5);bit_clr(PORTD,5);}
 	}
 }

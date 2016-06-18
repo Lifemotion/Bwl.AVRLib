@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
+#include "bwl_uart.h"
 
 void uart_init_withdivider(unsigned int ubrr)
 {
@@ -36,9 +37,14 @@ void uart_send( unsigned char byte )
 	UDR0 = byte;
 }
 
-unsigned char uart_peek( void )
+ unsigned char uart_received( void )
 {
-	if ( (UCSR0A & (1<<RXC0)) )
+	return (UCSR0A & (1<<RXC0));
+}
+
+unsigned char uart_get( void )
+{
+	if (uart_received())
 	{
 		return UDR0;
 	}

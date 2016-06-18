@@ -2,8 +2,8 @@
 #include "bwl_catuart.h"
 
 #define CATUART_ADDITIONAL 8
-unsigned char cuRecvData[CATUART_MAX_PACKET_LENGTH+CATUART_ADDITIONAL];
-unsigned char cuRecvDataPointer;
+unsigned char sserial_buffer[CATUART_MAX_PACKET_LENGTH+CATUART_ADDITIONAL];
+unsigned char sserial_buffer_pointer;
 
 const unsigned char crc8table[256]={0, 94, 188, 226, 97, 63, 221, 131, 194, 156, 126, 32, 163, 253, 31, 65, 157,
 	195, 33, 127, 252, 162, 64, 30, 95, 1, 227, 189, 62, 96, 130, 220, 35,125, 159, 193, 66, 28, 254, 160, 225, 191, 93, 3, 128, 222, 60, 98, 190,
@@ -131,26 +131,26 @@ char catuart_process_internal()
 
 byte process_packet_universal_crc8(byte crcstart, byte datalength, bool fixedlength)
 {
-	cuRequest.command=cuRecvData[4];
+	cuRequest.command=sserial_buffer[4];
 	byte offset=5;
 	
-	if (!fixedlength)							{datalength=cuRecvData[5]; offset+=1;}
+	if (!fixedlength)							{datalength=sserial_buffer[5]; offset+=1;}
 	if (datalength>CATUART_MAX_PACKET_LENGTH)	{datalength=CATUART_MAX_PACKET_LENGTH;}
 	cuRequest.datalength=datalength;
 	
 	for (byte i=0; i< datalength; i++)
 	{
-		cuRequest.data[i]=cuRecvData[offset+i];
+		cuRequest.data[i]=sserial_buffer[offset+i];
 	}
 	
-	byte crc1=cuRecvData[offset+datalength];
+	byte crc1=sserial_buffer[offset+datalength];
 	crc8data=crcstart;
 	for (unsigned char i=0; i<offset+datalength; i++)
 	{
-		crc8(cuRecvData[i]);
+		crc8(sserial_buffer[i]);
 	}
 	crc8data&=mask;
-	if ((crc1==crc8data)&&(cuRecvDataPointer==offset+datalength+2)){	return 1;}
+	if ((crc1==crc8data)&&(sserial_buffer_pointer==offset+datalength+2)){	return 1;}
 		
 	return 0;
 }
@@ -158,23 +158,23 @@ byte process_packet_universal_crc8(byte crcstart, byte datalength, bool fixedlen
 void catuart_poll_uart()
 {
 	catuart_tx_off();
-	byte read=uart_peek();
+	byte read=uart_get();
 	if (read<0xFF)
 	{
-		if (cuRecvDataPointer<CATUART_MAX_PACKET_LENGTH+CATUART_ADDITIONAL)
+		if (sserial_buffer_pointer<CATUART_MAX_PACKET_LENGTH+CATUART_ADDITIONAL)
 		{
-			cuRecvData[cuRecvDataPointer]=read;
-			cuRecvDataPointer++;
+			sserial_buffer[sserial_buffer_pointer]=read;
+			sserial_buffer_pointer++;
 		};
-		if (read==0xFE)	{cuRecvDataPointer=0;}
+		if (read==0xFE)	{sserial_buffer_pointer=0;}
 		if (read==0xFC)
 		{
-			if(( (cuRecvData[0]==0)&&(cuRecvData[1]==0)&&(cuRecvData[2]==0)) ||((cuRecvData[0]==cuAddress[0])&&(cuRecvData[1]==cuAddress[1])&&(cuRecvData[2]==cuAddress[2])))
+			if(( (sserial_buffer[0]==0)&&(sserial_buffer[1]==0)&&(sserial_buffer[2]==0)) ||((sserial_buffer[0]==cuAddress[0])&&(sserial_buffer[1]==cuAddress[1])&&(sserial_buffer[2]==cuAddress[2])))
 			{
-				cuRequest.address[0]=cuRecvData[0];
-				cuRequest.address[1]=cuRecvData[1];
-				cuRequest.address[2]=cuRecvData[2];
-				cuRequest.type=cuRecvData[3];
+				cuRequest.address[0]=sserial_buffer[0];
+				cuRequest.address[1]=sserial_buffer[1];
+				cuRequest.address[2]=sserial_buffer[2];
+				cuRequest.type=sserial_buffer[3];
 				byte processed=0;
 				if (cuRequest.type==0x08)	{processed=process_packet_universal_crc8(0xAA,4,true);}
 				if (cuRequest.type==0x10)	{processed=process_packet_universal_crc8(0xAA,8,true);}

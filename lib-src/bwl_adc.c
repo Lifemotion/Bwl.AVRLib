@@ -34,18 +34,18 @@
 #define ADC_PRESCALER_64 6
 #define ADC_PRESCALER_128 7
 
-void adcInit (unsigned char mux, unsigned char adjust, unsigned char refs, unsigned char prescaler){
+void adc_init (unsigned char mux, unsigned char adjust, unsigned char refs, unsigned char prescaler){
 	
 	ADCSRA = (1 << ADEN)|(prescaler << ADPS0);
 	ADMUX  = (refs << REFS0)|(adjust << ADLAR)|(mux << MUX0);
 }
 
-void adcOff (void){
+void adc_off (void){
 	ADCSRA = (0 << ADEN)|(0 << ADPS1)|(0 << ADPS0);
 	ADMUX  = (0 << REFS1)|(0 << REFS0)|(0 << ADLAR)|(0 << MUX0)|(0 << MUX1)|(0 << MUX2)|(0 << MUX3);
 }
 
-unsigned int adcReadOnce (void){
+unsigned int adc_read_once (void){
 	unsigned int data;
 	
 	ADCSRA |= (1 << ADSC);
