@@ -35,6 +35,16 @@ int adc_read_average(int count);
 #define ADC_MUX_ADC6 6
 #define ADC_MUX_ADC7 7
 
+#define ADC_MUX_ADCDIFF_1_0_X10 9
+#define ADC_MUX_ADCDIFF_1_0_X200 11
+#define ADC_MUX_ADCDIFF_3_2_X10 13
+#define ADC_MUX_ADCDIFF_3_2_X200 15
+
+#define ADC_MUX_ADCDIFF_9_8_X10 9
+#define ADC_MUX_ADCDIFF_9_8_X200 11
+#define ADC_MUX_ADCDIFF_11_10_X10 13
+#define ADC_MUX_ADCDIFF_11_10_X200 15
+
 /*
 #define ADC_MUX_ADC_TEMP 8
 #define ADC_MUX_1_1V 14
@@ -56,5 +66,7 @@ int adc_read_average(int count);
 #define ADC_PRESCALER_32 5
 #define ADC_PRESCALER_64 6
 #define ADC_PRESCALER_128 7
+
+#define ADC_DEFAULTS ADC_ADJUST_RIGHT, ADC_REFS_INTERNAL_2_56, ADC_PRESCALER_16
 
 #endif /* BWL_ADC_H_ */

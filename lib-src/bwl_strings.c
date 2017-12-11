@@ -23,7 +23,7 @@ void string_clear()
 void string_add_string(char* string)
 {
 	unsigned char i=0;
-	while (string[i]>0)
+	while (string[i]>0 && i<STRING_BUFFER_SIZE)
 	{
 		if (string_buffer_pos>STRING_BUFFER_SIZE){return;}
 		string_buffer[string_buffer_pos++]=string[i++];
@@ -45,6 +45,12 @@ void string_add_space()
 void string_add_int(int val)
 {
 	itoa(val,string_process_buffer,10);
+	string_add_string(string_process_buffer);
+}
+
+void string_add_long(long val)
+{
+	ltoa(val,string_process_buffer,10);
 	string_add_string(string_process_buffer);
 }
 

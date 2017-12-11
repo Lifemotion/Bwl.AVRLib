@@ -17,15 +17,35 @@ char i2c_read_byte() ;
 char i2c_read_last_byte() ;
 void i2c_stop();
 
-/*Need to enable pull-ups on I2C pins and set I2C bitrate
-	PORTC&=(~(1<<PORTC5));
-	PORTC&=(~(1<<PORTC4));
-	
+/*
+//Example:
+
+#define PIN_SCL C,4
+#define PIN_SDA C,5
+
+#include <avr/io.h>
+#include "bwl_pins.h"
+#include "bwl_i2c.h"
+
+void main()
+{
+	//Enable pull-ups for SCL & SDA pins
+	pin_input_pullup(PIN_SCL);
+	pin_input_pullup(PIN_SDA);
 	//TWSR – TWI Status Register
-	TWSR = 0;
-	
+	TWSR = 0;	
 	//TWBR – TWI Bit Rate Register
 	TWBR = 20;
+	
+	i2c_start();
+	i2c_write_byte(0x3A);
+	i2c_write_byte(0x85);
+	i2c_start();
+	i2c_write_byte(0x3B);
+	unsigned char l = i2c_read_byte();
+	unsigned char h = i2c_read_last_byte();
+	i2c_stop();
+}
 */
 
 #endif /* BWL_I2C_H_ */

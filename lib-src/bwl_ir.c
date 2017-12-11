@@ -9,7 +9,6 @@
 
 #include "bwl_ir.h"
 #include <avr/io.h>
-#include <avr/wdt.h>
 #include <stdlib.h>
 
 char ir_send_buffer[32]={};
@@ -54,7 +53,7 @@ void ir_send_line(char *string)
 void ir_send_string(char *string)
 {
 	unsigned	char  i=0;
-	while (string[i]>0)
+	while (string[i]>0 && i<200)
 	{
 		ir_send(string[i]);
 		i++;
@@ -64,5 +63,11 @@ void ir_send_string(char *string)
 void ir_send_int(int val)
 {
 	itoa(val,ir_send_buffer,10);
+	ir_send_string(ir_send_buffer);
+}
+
+void ir_send_long(long val)
+{
+	ltoa(val,ir_send_buffer,10);
 	ir_send_string(ir_send_buffer);
 }

@@ -11,38 +11,44 @@
 #define BWL_IR_H_
 
 //должны быть реализованы
-void var_delay_ms(int ms);
+//задержка дл€ получени€ частоты 38 к√ц, ~10-12 мкс
 void ir_modulation_delay();
+//включить (state>0) или выключить (state=0) » -светодиод
 void ir_led_set(char state);
 
+//вызывать
+void ir_send(char data);
+void ir_send_string(char* string);
+void ir_send_int(int data);
+void ir_send_long(long data);
+void ir_send_line(char* string);
+
 /* Example:
-void var_delay_ms(int ms)
-{
-	for (int i=0; i<ms; i++)_delay_ms(1.0);
-}
+#define F_CPU 8000000
+#DEFINE PIN_IR A,1 //PORT A, PIN 1
+
+#include <avr/io.h>
+#include <avr/delay.h>
+#include "bwl_ir.h"
+#include "bwl_pins.h"
 
 void ir_led_set(char state)
 {
-	setbit(DDRA,7,1);
-	setbit(PORTA,7,state);
+	pin_set_dir(PIN_IR,1);
+	pin_set_out(PIN_IR,state);
 }
 
 void ir_modulation_delay()
 {
 	_delay_us(10.5);
 }
-*/
 
-//вызывать
-void ir_send(char data);
-void ir_send_string(char* string);
-void ir_send_int(int data);
-void ir_send_line(char* string);
-
-/* Example:
+void main()
+{
 	ir_send_string("climate_ok=");
 	ir_send_int(climate_ok);
-	ir_send_line("");}
+	ir_send_line("");
+}
 */
 
 #endif /* BWL_IR_H_ */

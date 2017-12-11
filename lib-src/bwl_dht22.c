@@ -1,40 +1,23 @@
-#include "DHT22.h"
+#include "bwl_dht22.h"
 
-#include "../Cf.Orlan.Hardware.PowerBoard.Fw/board/board.h"
-	
-// This should be 40, but the sensor is adding an extra bit at the start
 #define DHT22_DATA_BIT_COUNT 41
 
-//
-// Read the 40 bit data stream from the DHT 22
-// Store the results in private member data to be read by public member functions
-//
-int dht22_read(float *temperature, float *humidity)
+int dht22_read_fixed(char index, int *temperature, int *humidity)
 {
- // uint8_t bitmask = _bitmask;
-  //volatile uint8_t *reg asm("r30") = _baseReg;
 	uint8_t retryCount;
 	uint8_t bitTimes[DHT22_DATA_BIT_COUNT];
 	int currentHumidity;
 	int currentTemperature;
 	uint8_t checkSum, csPart1, csPart2, csPart3, csPart4;
-	
 	int i;
-
 	currentHumidity = 0;
 	currentTemperature = 0;
-	checkSum = 0;
-	
-	//return currentTime;
+	checkSum = 0;	
 	for(i = 0; i < DHT22_DATA_BIT_COUNT; i++)
 	{
 		bitTimes[i] = 0;
 	}
-
-	 // Pin needs to start HIGH, wait until it is HIGH with a timeout
-	//cli();
-	THERM_INPUT_MODE();
-	//sei();
+	dht22_pin_set(index,0,0);
 	retryCount = 0;
 	do
 	{
@@ -43,18 +26,11 @@ int dht22_read(float *temperature, float *humidity)
 			return DHT_BUS_HUNG;
 		}
 		retryCount++;
-		_delay_us(2);
-	} while(!THERM_READ());
-	// Send the activate pulse
-	//cli();
-	THERM_LOW();
-	THERM_OUTPUT_MODE(); // Output Low
-	//sei();
-	_delay_us(1100); // 1.1 ms
-	//cli();
-	THERM_INPUT_MODE();	// Switch back to input so pin can float
-	//sei();
-	// Find the start of the ACK Pulse
+		dht22_delay_2us();
+	} while(!dht22_pin_read(index));
+	dht22_pin_set(index,1,0);
+	dht22_delay_1100us();
+	dht22_pin_set(index,0,0);
 	retryCount = 0;
 	do
 	{
@@ -63,9 +39,8 @@ int dht22_read(float *temperature, float *humidity)
 			return DHT_ERROR_NOT_PRESENT;
 		}
 		retryCount++;
-		_delay_us(2);
-	} while(!THERM_READ());
-	// Find the end of the ACK Pulse
+		dht22_delay_2us();
+	} while(!dht22_pin_read(index));
 	retryCount = 0;
 	do
 	{
@@ -74,8 +49,8 @@ int dht22_read(float *temperature, float *humidity)
 			return DHT_ERROR_ACK_TOO_LONG;
 		}
 		retryCount++;
-		_delay_us(2);
-	} while(THERM_READ());
+		dht22_delay_2us();
+	} while(dht22_pin_read(index));
 	// Read the 40 bit data stream
 	for(i = 0; i < DHT22_DATA_BIT_COUNT; i++)
 	{
@@ -88,8 +63,8 @@ int dht22_read(float *temperature, float *humidity)
 				return DHT_ERROR_SYNC_TIMEOUT;
 			}
 			retryCount++;
-			_delay_us(2);
-		} while(!THERM_READ());
+			dht22_delay_2us();
+		} while(!dht22_pin_read(index));
 		// Measure the width of the data pulse
 		retryCount = 0;
 		do
@@ -99,8 +74,8 @@ int dht22_read(float *temperature, float *humidity)
 				return DHT_ERROR_DATA_TIMEOUT;
 			}
 			retryCount++;
-			_delay_us(2);
-		} while(THERM_READ());
+			dht22_delay_2us();
+		} while(dht22_pin_read(index));
 		bitTimes[i] = retryCount;
 	}
 	// Now bitTimes have the number of retries (us *2)
@@ -132,17 +107,17 @@ int dht22_read(float *temperature, float *humidity)
 		}
 	}
 
-	*humidity = ((float)(currentHumidity & 0x7FFF)) / 10.0;
+	*humidity = (currentHumidity & 0x7FFF);
 	
 	if(currentTemperature & 0x8000)
 	{
 		// Below zero, non standard way of encoding negative numbers!
 		currentTemperature &= 0x7FFF;
-		*temperature = ((float)currentTemperature / 10.0) * -1.0;
+		*temperature = -currentTemperature;
 	}
 	else
 	{
-		*temperature = (float)currentTemperature / 10.0;
+		*temperature = currentTemperature;
 	}
 
 	csPart1 = currentHumidity >> 8;
@@ -152,10 +127,27 @@ int dht22_read(float *temperature, float *humidity)
 	
 	if(checkSum == ((csPart1 + csPart2 + csPart3 + csPart4) & 0xFF))
 	{
-		//*humidity = 10;
 		return DHT_ERROR_NONE;
 	}
-	//*humidity = 20;
 	return DHT_ERROR_CHECKSUM;
 }
 
+int dht22_read_float(char index, float *temperature, float *humidity)
+{
+	int int_temp=0;
+	int int_humi=0;
+	int result=dht22_read_fixed(index,&int_temp,&int_humi);
+	*temperature = ((float) int_temp)/10.0;
+	*humidity = ((float) int_humi)/10.0;
+	return result;
+}
+
+int dht22_read_int(char index, int *temperature, int *humidity)
+{
+	int int_temp=0;
+	int int_humi=0;
+	int result=dht22_read_fixed(index,&int_temp,&int_humi);
+	*temperature = int_temp/10;
+	*humidity = int_humi/10;
+	return result;
+}

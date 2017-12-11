@@ -16,6 +16,7 @@ void string_add_string(char* string);
 void string_add_space();
 void string_add_char(char);
 void string_add_int(int val);
+void string_add_long(long val);
 void string_add_float(float val,char precision);
 void string_add_crlf();
 char string_buffer[STRING_BUFFER_SIZE];

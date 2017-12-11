@@ -10,7 +10,6 @@
 #include <avr/io.h>
 #include "bwl_adc.h"
 
-
 void adc_off (void){
 	ADCSRA = (0 << ADEN)|(0 << ADPS1)|(0 << ADPS0);
 	ADMUX  = (0 << REFS1)|(0 << REFS0)|(0 << ADLAR)|(0 << MUX0)|(0 << MUX1)|(0 << MUX2)|(0 << MUX3);
@@ -26,6 +25,7 @@ unsigned int adc_read_once (void){
 	return data;
 }
 
+#ifdef MUX5
 void adc_init_mux5 (unsigned char mux, unsigned char adjust, unsigned char refs, unsigned char prescaler){
 	
 	ADCSRA = (1 << ADEN)|(prescaler << ADPS0);
@@ -33,6 +33,7 @@ void adc_init_mux5 (unsigned char mux, unsigned char adjust, unsigned char refs,
 	ADMUX  = (refs << REFS0)|(adjust << ADLAR)|(mux << MUX0);
 	adc_read_once();
 }
+#endif
 
 void adc_init (unsigned char mux, unsigned char adjust, unsigned char refs, unsigned char prescaler){
 	
@@ -45,9 +46,24 @@ void adc_init (unsigned char mux, unsigned char adjust, unsigned char refs, unsi
 int adc_read_average(int count )
 {
 	unsigned long sum=0;
+	adc_read_once();
+	adc_read_once();
 	for (int i=0; i<count; i++)
 	{
 		sum+=adc_read_once();
+	}
+	return sum/count;
+}
+
+int adc_read_average_complement(int count )
+{
+	unsigned long sum=0;
+	unsigned int tmp=0;
+	for (int i=0; i<count; i++)
+	{
+		tmp=adc_read_once();
+		if (tmp>511){tmp=tmp-512;}else {tmp=tmp+512;}
+		sum+=tmp;
 	}
 	return sum/count;
 }
